@@ -117,7 +117,7 @@ class UndoObjectPopup : public Popup, FLAlertLayerProtocol, SetIDPopupDelegate {
         btn->setPosition(scale->getContentSize());
         menu = CCMenu::create(btn, NULL);
         menu->setPosition(ccp(0,0));
-        if(Mod::get()->getSettingValue<bool>("info-btn")) scale->addChild(menu);
+        if (Mod::get()->getSettingValue<bool>("info-btn")) scale->addChild(menu);
 
         m_cells.push_back(scale);
 

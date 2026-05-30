@@ -10,10 +10,11 @@ set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 
 project(DevTools2.0 VERSION 1.0.0)
 
+if(MSVC)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zc:alternativeTokens-")
-
-    add_compile_options(/Zc:alternativeTokens /permissive-)
-    add_compile_options(/permissive- /utf-8 /bigobj)
+add_compile_options(/Zc:alternativeTokens /permissive-)
+add_compile_options(/permissive- /utf-8 /bigobj)
+endif()
 
 file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS src/*.cpp src/*.cc)
 add_library(${PROJECT_NAME} SHARED ${SOURCES})
