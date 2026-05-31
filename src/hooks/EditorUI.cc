@@ -253,11 +253,9 @@ class UndoObjectPopup : public Popup, FLAlertLayerProtocol, SetIDPopupDelegate {
         spr->addChild(m_pageLabel);
         spr->setScale(.7f);
         btn = CCMenuItemSpriteExtra::create(spr, this, menu_selector(UndoObjectPopup::onPage));
-        // 3 HOURS to fix this visual bug btw
-        btn->setPosition(ccp(660, 370));
+        btn->setPosition(ccp(m_size.width - 20, m_size.height / 2 + 60));
         menu = CCMenu::create(btn, NULL);
         menu->setPosition(ccp(0,0));
-        menu->ignoreAnchorPointForPosition(false);
         m_mainLayer->addChild(menu);
 
         this->setTitle(text.c_str());
@@ -330,8 +328,8 @@ class UndoObjectPopup : public Popup, FLAlertLayerProtocol, SetIDPopupDelegate {
         popup->m_delegate = this;
         popup->show();
         
-        // simple fix for arrows being rotated in android for some reason
-        #ifdef GEODE_IS_ANDROID
+        // simple fix for arrows not being rotated in android32 for some reason
+        #ifdef GEODE_IS_ANDROID32
         if (auto menu = popup->m_mainLayer->getChildByID("main-menu"))
         {
             if (auto btn = static_cast<CCMenuItemSpriteExtra*>(menu->getChildByID("left-arrow-button")))
