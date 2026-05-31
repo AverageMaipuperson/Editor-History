@@ -328,21 +328,22 @@ class UndoObjectPopup : public Popup, FLAlertLayerProtocol, SetIDPopupDelegate {
         popup->m_delegate = this;
         popup->show();
         
-        // simple fix for arrows not being rotated in android32 for some reason
-        #ifdef GEODE_IS_ANDROID32
-        if (auto menu = popup->m_mainLayer->getChildByID("main-menu"))
+        // simple fix for arrows not being rotated in some android devices for some reason
+        if (Mod::get()->getSettingValue<bool>("rotation-fix"))
         {
-            if (auto btn = static_cast<CCMenuItemSpriteExtra*>(menu->getChildByID("left-arrow-button")))
+            if (auto menu = popup->m_mainLayer->getChildByID("main-menu"))
             {
-                btn->getNormalImage()->setRotation(90.f);
-            }
+                if (auto btn = static_cast<CCMenuItemSpriteExtra*>(menu->getChildByID("left-arrow-button")))
+                {
+                    btn->getNormalImage()->setRotation(0.f);
+                }
 
-            if (auto btn = static_cast<CCMenuItemSpriteExtra*>(menu->getChildByID("right-arrow-button")))
-            {
-                btn->getNormalImage()->setRotation(-90.f);
+                if (auto btn = static_cast<CCMenuItemSpriteExtra*>(menu->getChildByID("right-arrow-button")))
+                {
+                    btn->getNormalImage()->setRotation(0.f);
+                }
             }
         }
-        #endif
     }
 
     void setIDPopupClosed(SetIDPopup* popup, int val)

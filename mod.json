@@ -21,6 +21,13 @@
 			"description": "Every cell will have additional info about the UndoObject, mostly for dev debugging.",
 			"type": "bool",
 			"default": false
+		},
+
+		"rotation-fix": {
+			"name": "Button Rotation Fix",
+			"description": "Some android devices suffer from this bug for some reason, turn it on if the page selection arrows break.",
+			"type": "bool",
+			"default": false
 		}
 	},
     "resources": {
