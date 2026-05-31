@@ -6,7 +6,7 @@
 	},
 	"id": "nano.editorhistory",
 	"name": "Editor History",
-	"version": "v1.0.0",
+	"version": "v1.0.1",
 	"developer": "nano",
 	"description": "Adds the editor history.",
 	"dependencies": {
