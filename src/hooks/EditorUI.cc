@@ -186,6 +186,9 @@ class UndoObjectPopup : public Popup, FLAlertLayerProtocol, SetIDPopupDelegate {
     {
         if (!geode::Popup::init(width, height, "GJ_square01.png") || m_ui == nullptr || m_lel == nullptr) return false;
 
+        auto winSize = cocos2d::CCDirector::sharedDirector()->getWinSize();
+        int off = 0;
+
         m_scrollLayer = ScrollLayer::create(
             CCSize(400, 230),
             true,
@@ -194,16 +197,14 @@ class UndoObjectPopup : public Popup, FLAlertLayerProtocol, SetIDPopupDelegate {
 
         m_mainLayer->addChild(m_scrollLayer);
         m_scrollLayer->setPosition(ccp(40, 8));
-        
-        auto winSize = cocos2d::CCDirector::sharedDirector()->getWinSize();
-        int off = 0;
+
         auto undoObjects = m_lel->m_undoObjects;
-        auto raw = undoObjects->data;
-        
-        m_undoList.assign(
-            reinterpret_cast<UndoObject**>(raw->arr), 
-            reinterpret_cast<UndoObject**>(raw->arr) + raw->num
-        );  
+        m_undoList.reserve(undoObjects->count());
+
+        for (auto* obj : cocos2d::CCArrayIteratorAndSafeCast<UndoObject*>(undoObjects))
+        {
+            m_undoList.push_back(obj);
+        }
 
         if (m_undoList.size() < 1) 
         {
@@ -284,16 +285,14 @@ class UndoObjectPopup : public Popup, FLAlertLayerProtocol, SetIDPopupDelegate {
     void undo(int off, int id)
     {
         auto undoObjects = m_lel->m_undoObjects;
-
-        auto raw = undoObjects->data;
-        int idx = raw->num - 1;
+        int idx = static_cast<int>(undoObjects->count()) - 1;
         if (off < 0 || off > idx) return;
 
-        auto obj = static_cast<UndoObject*>(raw->arr[off]);
+        auto obj = static_cast<UndoObject*>(undoObjects->objectAtIndex(off));
         if (!obj) return;
         obj->retain();
 
-        std::swap(raw->arr[off], raw->arr[idx]);
+        undoObjects->exchangeObjectAtIndex(off, idx);
         m_ui->undoLastAction(m_lel);
         obj->release();
 
@@ -329,19 +328,16 @@ class UndoObjectPopup : public Popup, FLAlertLayerProtocol, SetIDPopupDelegate {
         popup->show();
         
         // simple fix for arrows not being rotated in some android devices for some reason
-        if (Mod::get()->getSettingValue<bool>("rotation-fix"))
+        if (auto menu = popup->m_mainLayer->getChildByID("main-menu"))
         {
-            if (auto menu = popup->m_mainLayer->getChildByID("main-menu"))
+            if (auto btn = static_cast<CCMenuItemSpriteExtra*>(menu->getChildByID("left-arrow-button")))
             {
-                if (auto btn = static_cast<CCMenuItemSpriteExtra*>(menu->getChildByID("left-arrow-button")))
-                {
-                    btn->getNormalImage()->setRotation(0.f);
-                }
+                btn->getNormalImage()->setRotation(0.f);
+            }
 
-                if (auto btn = static_cast<CCMenuItemSpriteExtra*>(menu->getChildByID("right-arrow-button")))
-                {
-                    btn->getNormalImage()->setRotation(0.f);
-                }
+            if (auto btn = static_cast<CCMenuItemSpriteExtra*>(menu->getChildByID("right-arrow-button")))
+            {
+                btn->getNormalImage()->setRotation(0.f);
             }
         }
     }
