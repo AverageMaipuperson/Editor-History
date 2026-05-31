@@ -201,9 +201,13 @@ class UndoObjectPopup : public Popup, FLAlertLayerProtocol, SetIDPopupDelegate {
         auto undoObjects = m_lel->m_undoObjects;
         m_undoList.reserve(undoObjects->count());
 
-        for (auto* obj : cocos2d::CCArrayIteratorAndSafeCast<UndoObject*>(undoObjects))
+        for (unsigned int i = 0; i < undoObjects->count(); ++i) 
         {
-            m_undoList.push_back(obj);
+            auto* obj = undoObjects->objectAtIndex(i);
+            if (auto* undoObj = static_cast<UndoObject*>(obj))
+            {
+                m_undoList.push_back(undoObj);
+            }
         }
 
         if (m_undoList.size() < 1) 
