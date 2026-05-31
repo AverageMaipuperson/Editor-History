@@ -253,9 +253,11 @@ class UndoObjectPopup : public Popup, FLAlertLayerProtocol, SetIDPopupDelegate {
         spr->addChild(m_pageLabel);
         spr->setScale(.7f);
         btn = CCMenuItemSpriteExtra::create(spr, this, menu_selector(UndoObjectPopup::onPage));
-        btn->setPosition(ccp(440.f - 20.f, 280.f / 2.0f + 60.f));
+        // 3 HOURS to fix this visual bug btw
+        btn->setPosition(ccp(660, 370));
         menu = CCMenu::create(btn, NULL);
         menu->setPosition(ccp(0,0));
+        menu->ignoreAnchorPointForPosition(false);
         m_mainLayer->addChild(menu);
 
         this->setTitle(text.c_str());
