@@ -1,3 +1,5 @@
+# 1.0.2
+- nano forgot he removed mac and ios from mod.json!
 # 1.0.1
 - Make CCArray handling safer.
 - Remove "Fix Arrow Rotation" setting.
