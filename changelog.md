@@ -1,3 +1,6 @@
+# 1.0.3
+- Remove possible UB and exception causing functions like `std::to_string`.
+- Fix undo command returning very high numbers.
 # 1.0.2
 - nano forgot he removed mac and ios from mod.json!
 # 1.0.1

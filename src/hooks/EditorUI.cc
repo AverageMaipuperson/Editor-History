@@ -11,6 +11,7 @@
 #include <Geode/loader/Log.hpp>
 #include <Geode/binding/SetIDPopup.hpp>
 #include <Geode/ui/BasedButtonSprite.hpp>
+#include <Geode/utils/cocos.hpp>
 using namespace geode::prelude;
 using namespace cocos2d;
 using namespace geode;
@@ -101,12 +102,24 @@ class UndoObjectPopup : public Popup, FLAlertLayerProtocol, SetIDPopupDelegate {
         cmdLabel->setScale(.5f);
         cmdLabel->setPosition(ccp(scale->getContentSize().width / 2, 20));
         scale->addChild(cmdLabel);
-
         auto spr = CCSprite::createWithSpriteFrameName("GJ_undoBtn_001.png");
         spr->setScale(.75f);
-        auto btn = CCMenuItemSpriteExtra::create(spr, this, menu_selector(UndoObjectPopup::onUndo));
-        btn->setUserData(reinterpret_cast<void*>(static_cast<uintptr_t>(offset)));
-        btn->setTag(id);
+        auto btn = CCMenuItemExt::createSpriteExtra(
+            spr, 
+            [this, offset, id](CCObject* sender)
+            {
+                geode::createQuickPopup(
+                    "Undo Action",
+                    "Are you sure you want to <cr>undo</c> this action? <cy>it can lead to bugs if you're not careful.</c>",
+                    "Cancel",
+                    "Undo",
+                    [this, offset, id](FLAlertLayer* layer, bool btn2)
+                    {
+                        if (btn2) this->undo(offset, id); 
+                    }
+                );
+            }
+        );
         btn->setPosition(ccp(scale->getContentSize().width - 20, 20));
 
         auto menu = CCMenu::create(btn, NULL);
@@ -139,7 +152,7 @@ class UndoObjectPopup : public Popup, FLAlertLayerProtocol, SetIDPopupDelegate {
 
         m_page += mod;
         
-        m_pageLabel->setString(std::to_string(m_page).c_str());
+        m_pageLabel->setString(utils::numToString(m_page).c_str());
 
         // thanks to erymanthus
         auto layout = ColumnLayout::create()
@@ -269,7 +282,7 @@ class UndoObjectPopup : public Popup, FLAlertLayerProtocol, SetIDPopupDelegate {
         return true;
     }   
 
-    void onUndo(CCObject* obj)
+    /* void onUndo(CCObject* obj)
     {
         auto btn = (CCMenuItemSpriteExtra*)obj;
         auto offset = reinterpret_cast<uintptr_t>(btn->getUserData());
@@ -284,7 +297,7 @@ class UndoObjectPopup : public Popup, FLAlertLayerProtocol, SetIDPopupDelegate {
         alert->setTag(btn->getTag());
         alert->setUserData((void*)offset);
         alert->show();
-    }
+    } */
 
     void undo(int off, int id)
     {
@@ -304,14 +317,14 @@ class UndoObjectPopup : public Popup, FLAlertLayerProtocol, SetIDPopupDelegate {
     }
 
 
-    void FLAlert_Clicked(FLAlertLayer* layer, bool btn2)
+    /* void FLAlert_Clicked(FLAlertLayer* layer, bool btn2)
     {
         if(btn2) 
         {
             auto offset = reinterpret_cast<uintptr_t>(layer->getUserData());
             undo((int)offset, layer->getTag());
         }
-    }
+    } */
 
     void onPage(CCObject* obj)
     {  
@@ -358,7 +371,7 @@ class UndoObjectPopup : public Popup, FLAlertLayerProtocol, SetIDPopupDelegate {
 
         FLAlertLayer::create(
             "Info",
-            fmt::format("<cy>Command:</c> {} \n <cp>Transform State:</c> scaleX: {}, scaleY: {}, angleX: {}, angleY: {}, skewX: {}, skewY: {}, tRotation: {}, tPositionX: {}, tPositionY: {} \n <cr>Undo Transform</c>: {} \n <cg>Redo</c>: {}", (int)undo->m_command, t.m_scaleX, t.m_scaleY, t.m_angleX, t.m_angleY, t.m_skewX, t.m_skewY, t.m_transformRotation, t.m_transformPosition.x, t.m_transformPosition.y, undo->m_undoTransform, undo->m_redo).c_str(),
+            fmt::format("<cy>Command:</c> {} \n <cp>Transform State:</c> scaleX: {}, scaleY: {}, angleX: {}, angleY: {}, skewX: {}, skewY: {}, tRotation: {}, tPositionX: {}, tPositionY: {} \n <cr>Undo Transform</c>: {} \n <cg>Redo</c>: {}", (int)cast::union_cast<float>(undo->m_command), t.m_scaleX, t.m_scaleY, t.m_angleX, t.m_angleY, t.m_skewX, t.m_skewY, t.m_transformRotation, t.m_transformPosition.x, t.m_transformPosition.y, undo->m_undoTransform, undo->m_redo).c_str(),
             "OK"
         )->show();
     }
