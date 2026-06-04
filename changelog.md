@@ -1,3 +1,5 @@
+# 1.0.4
+- Fix button not hiding when hiding the UI
 # 1.0.3
 - Remove possible UB and exception causing functions like `std::to_string`.
 - Fix undo command returning very high numbers.

@@ -392,6 +392,7 @@ class $modify(ToolsEditorUI, EditorUI) {
             auto btn = CCMenuItemSpriteExtra::create(spr, this, menu_selector(ToolsEditorUI::onHistory));
             btn->setContentSize(ccp(40, 40));
             menu->addChild(btn);
+            m_uiItems->addObject(btn);
             menu->updateLayout();
         }
         return true;
