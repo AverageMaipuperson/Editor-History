@@ -1,5 +1,3 @@
-// NOTE: As i update this mod i will strip off UndoObjectPopup from EditorUI.cc and i will re-organize most of the stuff.
-
 #include <Geode/modify/EditorUI.hpp>
 #include <Geode/modify/LevelEditorLayer.hpp>
 #include <Geode/binding/FLAlertLayer.hpp>
@@ -12,9 +10,60 @@
 #include <Geode/binding/SetIDPopup.hpp>
 #include <Geode/ui/BasedButtonSprite.hpp>
 #include <Geode/utils/cocos.hpp>
+#include "CCRadioMenu.h"
 using namespace geode::prelude;
 using namespace cocos2d;
 using namespace geode;
+
+class UndoFilterPopup : public Popup {
+    public:
+    CCRadioMenu* m_menu;
+
+    static UndoFilterPopup* create(std::string const& text)
+    {
+        auto ret = new UndoFilterPopup();
+
+        if (ret && ret->init(240.f, 100.f, text))
+        {
+            ret->autorelease();
+            return ret;
+        }
+
+        delete ret;
+        return nullptr;
+    }
+
+    CCMenuItemToggler* toggler(char const* spr1, char const* spr2) {
+        auto offSpr = CCSprite::createWithSpriteFrameName(spr2);
+        auto onSpr = CCSprite::createWithSpriteFrameName(spr1);
+
+        auto off = CCMenuItemSprite::create(offSpr, offSpr, nullptr, nullptr);
+        auto on  = CCMenuItemSprite::create(onSpr,  onSpr,  nullptr, nullptr);
+
+        return CCMenuItemToggler::create(off, on, this, NULL);
+    }
+
+    bool init(float width, float height, std::string const& text)
+    {   
+        if (!geode::Popup::init(width, height, "GJ_square01.png")) return false;
+
+        auto arr = CCArrayExt<CCMenuItemToggler*>(CCArray::create());
+
+        arr.push_back(toggler("GJ_checkOn_001.png", "GJ_checkOff_001.png"));
+        arr.push_back(toggler("GJ_checkOn_001.png", "GJ_checkOff_001.png"));
+        arr.push_back(toggler("GJ_checkOn_001.png", "GJ_checkOff_001.png"));
+
+        m_menu = CCRadioMenu::create(arr);
+        m_menu->alignItemsHorizontallyWithPadding(5.f);
+        m_menu->setPosition(ccp(m_mainLayer->getContentSize().width / 2, m_mainLayer->getContentSize().height / 2));
+        m_mainLayer->addChild(m_menu);
+
+        this->setTitle(text.c_str());
+        return true;
+    }
+
+    virtual void onClose(cocos2d::CCObject* sender) override;
+};
 
 class UndoObjectPopup : public Popup, FLAlertLayerProtocol, SetIDPopupDelegate {
     
@@ -27,14 +76,14 @@ class UndoObjectPopup : public Popup, FLAlertLayerProtocol, SetIDPopupDelegate {
     std::vector<UndoObject*> m_undoList = {};
     ScrollLayer* m_scrollLayer;
     CCLabelBMFont* m_pageLabel;
+    static int m_filter;
 
-    static UndoObjectPopup* create(std::string const& text) {
+    static UndoObjectPopup* create(std::string const& text)
+    {
         auto ret = new UndoObjectPopup();
-        ret->m_ui = EditorUI::get();
-        ret->m_page = 1;
-        ret->m_lel = ret->m_ui->m_editorLayer;
 
-        if (ret && ret->init(440.f, 280.f, text)) {
+        if (ret && ret->init(440.f, 280.f, text))
+        {
             ret->autorelease();
             return ret;
         }
@@ -88,7 +137,7 @@ class UndoObjectPopup : public Popup, FLAlertLayerProtocol, SetIDPopupDelegate {
             case 2: command = plural ? fmt::format("Created {} objects", count) : "Created 1 object"; break;
             case 3: command = plural ? fmt::format("Pasted {} objects", count) : "Pasted 1 object"; break;
             case 1: command = plural ? fmt::format("Deleted {} objects", count) : "Deleted 1 object"; break;
-            case 5: command = plural ? fmt::format("Moved {} objects", count) : "Moved 1 object"; break;
+            case 5: command = plural ? fmt::format("Transformed {} objects", count) : "Transformed 1 object"; break;
             case 4: command = fmt::format("Deleted {} objects", count); break;
             case 6: command = plural ? fmt::format("De-selected {} objects", count) : "Selected objects"; break;
             default: command = fmt::format("Command {}: {} objects", (int)undo->m_command, count); break;
@@ -127,6 +176,7 @@ class UndoObjectPopup : public Popup, FLAlertLayerProtocol, SetIDPopupDelegate {
         scale->addChild(menu);
 
         spr = CCSprite::createWithSpriteFrameName("GJ_infoIcon_001.png");
+        spr->setScale(.75f);
         btn = CCMenuItemSpriteExtra::create(spr, undo, menu_selector(UndoObjectPopup::moreInfo));
         btn->setPosition(scale->getContentSize());
         menu = CCMenu::create(btn, NULL);
@@ -197,7 +247,11 @@ class UndoObjectPopup : public Popup, FLAlertLayerProtocol, SetIDPopupDelegate {
 
     bool init(float width, float height, std::string const& text) 
     {
-        if (!geode::Popup::init(width, height, "GJ_square01.png") || m_ui == nullptr || m_lel == nullptr) return false;
+        if (!geode::Popup::init(width, height, "GJ_square01.png")) return false;
+
+        m_ui = EditorUI::get();
+        m_lel = m_ui->m_editorLayer;
+        m_page = 1;
 
         auto winSize = cocos2d::CCDirector::sharedDirector()->getWinSize();
         int off = 0;
@@ -271,9 +325,16 @@ class UndoObjectPopup : public Popup, FLAlertLayerProtocol, SetIDPopupDelegate {
         spr->addChild(m_pageLabel);
         spr->setScale(.7f);
         btn = CCMenuItemSpriteExtra::create(spr, this, menu_selector(UndoObjectPopup::onPage));
-        btn->setPosition(ccp(m_size.width - 20, m_size.height / 2 + 60));
         menu = CCMenu::create(btn, NULL);
-        menu->setPosition(ccp(0,0));
+        menu->setPosition(ccp(m_size.width - 20, m_size.height / 2 + 60));
+
+        spr = CCSprite::create("dt_filter.png"_spr);
+        spr->setScale(.7f);
+        spr = ButtonSprite::create(spr, 0, false, 0, "GJ_button_01.png", 1.f);
+        spr->setScale(.7f);
+        btn = CCMenuItemSpriteExtra::create(spr, this, menu_selector(UndoObjectPopup::onFilter));
+        menu->addChild(btn);
+        menu->alignItemsVerticallyWithPadding(5.f);
         m_mainLayer->addChild(menu);
 
         this->setTitle(text.c_str());
@@ -375,19 +436,35 @@ class UndoObjectPopup : public Popup, FLAlertLayerProtocol, SetIDPopupDelegate {
             "OK"
         )->show();
     }
+
+    void onFilter(CCObject*)
+    {
+        auto popup = UndoFilterPopup::create("Filter");
+        popup->m_menu->setValue(UndoObjectPopup::m_filter);
+        popup->show();
+    }
 };
 
+int UndoObjectPopup::m_filter = 0;
 
-class $modify(ToolsEditorUI, EditorUI) {
-     void onHistory(CCObject*) {
+void UndoFilterPopup::onClose(cocos2d::CCObject* sender)
+{
+    UndoObjectPopup::m_filter = m_menu->getValue();
+    geode::Popup::onClose(sender);
+}
+
+class $modify(ToolsEditorUI, EditorUI)
+{
+    void onHistory(CCObject*)
+    {
         UndoObjectPopup::create("Editor History")->show();
-        return;
     }
 
-    bool init(LevelEditorLayer* edit) {
+    bool init(LevelEditorLayer* edit)
+    {
         if(!EditorUI::init(edit)) return false;
-        auto debug = this->m_undoObject;
-        if(auto menu = this->querySelector("editor-buttons-menu")) {
+        if(auto menu = this->querySelector("editor-buttons-menu"))
+        {
             auto spr = EditorButtonSprite::createWithSprite("dt_history.png"_spr, 1.f, EditorBaseColor::Gray);
             auto btn = CCMenuItemSpriteExtra::create(spr, this, menu_selector(ToolsEditorUI::onHistory));
             btn->setContentSize(ccp(40, 40));

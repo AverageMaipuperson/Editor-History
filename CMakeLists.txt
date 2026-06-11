@@ -18,6 +18,10 @@ endif()
 
 file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS src/*.cpp src/*.cc)
 add_library(${PROJECT_NAME} SHARED ${SOURCES})
+target_include_directories(edit PUBLIC
+    include
+    include/custom_nodes
+)
 
 if (NOT DEFINED ENV{GEODE_SDK})
     message(FATAL_ERROR "Unable to find Geode SDK! Please define GEODE_SDK environment variable to point to Geode")

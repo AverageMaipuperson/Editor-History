@@ -1,3 +1,6 @@
+# 1.1.0
+- Add filters
+- Few possible UB fixes and adjustments
 # 1.0.4
 - Fix button not hiding when hiding the UI
 # 1.0.3

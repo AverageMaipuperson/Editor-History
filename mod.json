@@ -1,5 +1,5 @@
 {
-	"geode": "5.0.0",
+	"geode": "5.7.1",
 	"gd": {
 		"win": "2.2081",
         "android": "2.2081",
@@ -8,7 +8,7 @@
 	},
 	"id": "nano.editorhistory",
 	"name": "Editor History",
-	"version": "v1.0.4",
+	"version": "v1.1.0",
 	"developer": "nano",
 	"description": "Adds the editor history.",
 	"dependencies": {
