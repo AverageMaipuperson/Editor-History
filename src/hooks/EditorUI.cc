@@ -15,15 +15,17 @@ using namespace geode::prelude;
 using namespace cocos2d;
 using namespace geode;
 
+class UndoObjectPopup;
 class UndoFilterPopup : public Popup {
     public:
     CCRadioMenu* m_menu;
+    UndoObjectPopup* m_parent;
 
-    static UndoFilterPopup* create(std::string const& text)
+    static UndoFilterPopup* create(std::string const& text, UndoObjectPopup* parent)
     {
         auto ret = new UndoFilterPopup();
 
-        if (ret && ret->init(240.f, 100.f, text))
+        if (ret && ret->init(240.f, 100.f, text, parent))
         {
             ret->autorelease();
             return ret;
@@ -33,25 +35,24 @@ class UndoFilterPopup : public Popup {
         return nullptr;
     }
 
-    CCMenuItemToggler* toggler(char const* spr1, char const* spr2) {
-        auto offSpr = CCSprite::createWithSpriteFrameName(spr2);
-        auto onSpr = CCSprite::createWithSpriteFrameName(spr1);
-
-        auto off = CCMenuItemSprite::create(offSpr, offSpr, nullptr, nullptr);
-        auto on  = CCMenuItemSprite::create(onSpr,  onSpr,  nullptr, nullptr);
+    CCMenuItemToggler* toggler(char const* spr1, const char* spr2) {
+        auto off = CCSprite::create(spr1);
+        auto on = CCSprite::create(spr2);
 
         return CCMenuItemToggler::create(off, on, this, NULL);
     }
 
-    bool init(float width, float height, std::string const& text)
+    bool init(float width, float height, std::string const& text, UndoObjectPopup* parent)
     {   
         if (!geode::Popup::init(width, height, "GJ_square01.png")) return false;
 
+        m_parent = parent;
+
         auto arr = CCArrayExt<CCMenuItemToggler*>(CCArray::create());
 
-        arr.push_back(toggler("GJ_checkOn_001.png", "GJ_checkOff_001.png"));
-        arr.push_back(toggler("GJ_checkOn_001.png", "GJ_checkOff_001.png"));
-        arr.push_back(toggler("GJ_checkOn_001.png", "GJ_checkOff_001.png"));
+        arr.push_back(toggler("cd_01.png"_spr, "cd_02.png"_spr));
+        arr.push_back(toggler("t_01.png"_spr, "t_02.png"_spr));
+        arr.push_back(toggler("sd_01.png"_spr, "sd_02.png"_spr));
 
         m_menu = CCRadioMenu::create(arr);
         m_menu->alignItemsHorizontallyWithPadding(5.f);
@@ -90,6 +91,10 @@ class UndoObjectPopup : public Popup, FLAlertLayerProtocol, SetIDPopupDelegate {
 
         delete ret;
         return nullptr;
+    }
+
+    void reload() {
+        changePage(0);
     }
 
     protected:
@@ -132,14 +137,14 @@ class UndoObjectPopup : public Popup, FLAlertLayerProtocol, SetIDPopupDelegate {
         }
 
         auto plural = (count > 1);
-        switch ((int)undo->m_command) 
+        switch (undo->m_command) 
         {
-            case 2: command = plural ? fmt::format("Created {} objects", count) : "Created 1 object"; break;
-            case 3: command = plural ? fmt::format("Pasted {} objects", count) : "Pasted 1 object"; break;
-            case 1: command = plural ? fmt::format("Deleted {} objects", count) : "Deleted 1 object"; break;
-            case 5: command = plural ? fmt::format("Transformed {} objects", count) : "Transformed 1 object"; break;
-            case 4: command = fmt::format("Deleted {} objects", count); break;
-            case 6: command = plural ? fmt::format("De-selected {} objects", count) : "Selected objects"; break;
+            case UndoCommand::New: command = plural ? fmt::format("Created {} objects", count) : "Created 1 object"; break;
+            case UndoCommand::Paste: command = plural ? fmt::format("Pasted {} objects", count) : "Pasted 1 object"; break;
+            case UndoCommand::Delete: command = plural ? fmt::format("Deleted {} objects", count) : "Deleted 1 object"; break;
+            case UndoCommand::Transform: command = plural ? fmt::format("Transformed {} objects", count) : "Transformed 1 object"; break;
+            case UndoCommand::DeleteMulti: command = fmt::format("Deleted {} objects", count); break;
+            case UndoCommand::Select: command = plural ? fmt::format("De-selected {} objects", count) : "Selected objects"; break;
             default: command = fmt::format("Command {}: {} objects", (int)undo->m_command, count); break;
 
         }
@@ -183,10 +188,18 @@ class UndoObjectPopup : public Popup, FLAlertLayerProtocol, SetIDPopupDelegate {
         menu->setPosition(ccp(0,0));
         if (Mod::get()->getSettingValue<bool>("info-btn")) scale->addChild(menu);
 
-        m_cells.push_back(scale);
+        static const std::unordered_map<UndoCommand, int> map = {
+            {UndoCommand::Delete, 1}, {UndoCommand::New, 1}, {UndoCommand::Paste, 1}, {UndoCommand::DeleteMulti, 1}, // creation / deletion
+            {UndoCommand::Transform, 2}, // transformation
+            {UndoCommand::Select, 3} // selection / deselection
+        };
 
-        m_scrollLayer->m_contentLayer->addChild(scale);
-
+        auto it = map.find(undo->m_command);
+        if (m_filter == 0 || (it != map.end() && m_filter == it->second))
+        {
+            m_scrollLayer->m_contentLayer->addChild(scale);
+            m_cells.push_back(scale);
+        }
     }
 
     void changePage(int mod) 
@@ -429,17 +442,18 @@ class UndoObjectPopup : public Popup, FLAlertLayerProtocol, SetIDPopupDelegate {
     {
         auto undo = (UndoObject*)obj;
         auto t = undo->m_transformState;
+        auto command = undo->m_command;
 
         FLAlertLayer::create(
             "Info",
-            fmt::format("<cy>Command:</c> {} \n <cp>Transform State:</c> scaleX: {}, scaleY: {}, angleX: {}, angleY: {}, skewX: {}, skewY: {}, tRotation: {}, tPositionX: {}, tPositionY: {} \n <cr>Undo Transform</c>: {} \n <cg>Redo</c>: {}", (int)cast::union_cast<float>(undo->m_command), t.m_scaleX, t.m_scaleY, t.m_angleX, t.m_angleY, t.m_skewX, t.m_skewY, t.m_transformRotation, t.m_transformPosition.x, t.m_transformPosition.y, undo->m_undoTransform, undo->m_redo).c_str(),
+            fmt::format("<cy>Command:</c> {} \n <cp>Transform State:</c> scaleX: {}, scaleY: {}, angleX: {}, angleY: {}, skewX: {}, skewY: {}, tRotation: {}, tPositionX: {}, tPositionY: {} \n <cr>Undo Transform</c>: {} \n <cg>Redo</c>: {}", static_cast<int>(undo->m_command), t.m_scaleX, t.m_scaleY, t.m_angleX, t.m_angleY, t.m_skewX, t.m_skewY, t.m_transformRotation, t.m_transformPosition.x, t.m_transformPosition.y, undo->m_undoTransform, undo->m_redo).c_str(),
             "OK"
         )->show();
     }
 
     void onFilter(CCObject*)
     {
-        auto popup = UndoFilterPopup::create("Filter");
+        auto popup = UndoFilterPopup::create("Filter", this);
         popup->m_menu->setValue(UndoObjectPopup::m_filter);
         popup->show();
     }
@@ -451,6 +465,7 @@ void UndoFilterPopup::onClose(cocos2d::CCObject* sender)
 {
     UndoObjectPopup::m_filter = m_menu->getValue();
     geode::Popup::onClose(sender);
+    m_parent->reload();
 }
 
 class $modify(ToolsEditorUI, EditorUI)

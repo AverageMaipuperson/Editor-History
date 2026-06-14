@@ -27,7 +27,8 @@
 	},
     "resources": {
         "sprites": [
-            "resources/*.png"
+            "resources/*.png",
+			"resources/filter/*.png"
         ]
     },
 	"tags": ["editor", "offline", "utility"],

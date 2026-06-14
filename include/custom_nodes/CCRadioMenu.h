@@ -2,6 +2,12 @@
 using namespace cocos2d;
 using namespace geode::prelude;
 
+/* CCRadioMenu works like a CCMenu but only allows an array of CCMenuItemToggler to be passed down (will change soon)
+
+Any toggler that you add will be included for the radio logic
+
+getValue returns the selected toggler
+*/
 class CCRadioMenu : public CCMenu {
 public:
     static CCRadioMenu* create(CCArrayExt<CCMenuItemToggler*> togglers);
