@@ -1,3 +1,5 @@
+# 1.2.1
+- i found a dumb ui bug so i fixed it
 # 1.2.0
 - Added object viewer
 - Moved undoing to the object viewer

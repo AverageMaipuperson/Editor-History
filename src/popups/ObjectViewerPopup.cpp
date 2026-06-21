@@ -142,7 +142,11 @@ bool ObjectViewerPopup::init(float width, float height, std::string const& text,
         layout->setCrossAxisLineAlignment(AxisAlignment::Between);
     
         menu->setLayout(layout);
-    } else menu->setLayout(nullptr);
+    } else {
+        menu->setLayout(nullptr);
+        menu->setPosition(ccp(m_mainLayer->getContentSize().width - 20, 20));
+        menu->setAnchorPoint(ccp(0,0));
+    }
 
     menu->updateLayout();
 
