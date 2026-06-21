@@ -1,6 +1,8 @@
 # 1.2.0
 - Added object viewer
 - Moved undoing to the object viewer
+- Moved and fixed "more info" buttons
+- "Copy String to Clipboard" button added
 # 1.1.0
 - Add filters
 - Few possible UB fixes and adjustments

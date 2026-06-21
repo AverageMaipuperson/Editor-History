@@ -53,6 +53,11 @@ void UndoObjectPopup::createCellFromOffset(int offset, UndoObject* undo, int id)
 
     }
 
+    if(undo->m_command == UndoCommand::Select && undo->m_objects->count() == 1)
+    {
+        command = "De-selected 1 object";
+    }
+
     auto cmdLabel = CCLabelBMFont::create(
             command.c_str(), 
             "bigFont.fnt"
@@ -60,8 +65,8 @@ void UndoObjectPopup::createCellFromOffset(int offset, UndoObject* undo, int id)
     cmdLabel->setScale(.5f);
     cmdLabel->setPosition(ccp(scale->getContentSize().width / 2, 20));
     scale->addChild(cmdLabel);
-    auto spr = CCSprite::createWithSpriteFrameName("GJ_undoBtn_001.png");
-    spr->setScale(.75f);
+    auto spr = CCSprite::create("dt_settings02.png"_spr);
+    spr->setScale(.65f);
     auto btn = CCMenuItemExt::createSpriteExtra(
         spr, 
         [this, offset, id, undo, command](CCObject* sender)
@@ -85,14 +90,6 @@ void UndoObjectPopup::createCellFromOffset(int offset, UndoObject* undo, int id)
     auto menu = CCMenu::create(btn, NULL);
     menu->ignoreAnchorPointForPosition(false);
     scale->addChild(menu);
-
-    spr = CCSprite::createWithSpriteFrameName("GJ_infoIcon_001.png");
-    spr->setScale(.75f);
-    btn = CCMenuItemSpriteExtra::create(spr, undo, menu_selector(UndoObjectPopup::moreInfo));
-    btn->setPosition(scale->getContentSize());
-    menu = CCMenu::create(btn, NULL);
-    menu->setPosition(ccp(0,0));
-    if (Mod::get()->getSettingValue<bool>("info-btn")) scale->addChild(menu);
 
     static const std::unordered_map<UndoCommand, int> map = {
         {UndoCommand::Delete, 1}, {UndoCommand::New, 1}, {UndoCommand::Paste, 1}, {UndoCommand::DeleteMulti, 1}, // creation / deletion
