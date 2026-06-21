@@ -132,13 +132,13 @@ bool ObjectViewerPopup::init(float width, float height, std::string const& text,
         }
     );
     menu->addChild(btn);
-    menu->setPosition(ccp(95, 10));
-    menu->setAnchorPoint(ccp(0,0));
+    menu->setPosition(ccp(m_mainLayer->getContentSize().width - 10, 10));
+    menu->setAnchorPoint(ccp(1,0));
     if(hasString)
     {
         auto layout = RowLayout::create();
         layout->setGap(30.0f);
-        layout->setAxisAlignment(AxisAlignment::Center);
+        layout->setAxisAlignment(AxisAlignment::End);
         layout->setCrossAxisLineAlignment(AxisAlignment::Between);
     
         menu->setLayout(layout);
