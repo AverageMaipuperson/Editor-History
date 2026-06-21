@@ -21,6 +21,9 @@ add_library(${PROJECT_NAME} SHARED ${SOURCES})
 target_include_directories(edit PUBLIC
     include
     include/custom_nodes
+    src
+    src/popups
+    src/custom_nodes
 )
 
 if (NOT DEFINED ENV{GEODE_SDK})

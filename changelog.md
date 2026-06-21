@@ -1,3 +1,6 @@
+# 1.2.0
+- Added object viewer
+- Moved undoing to the object viewer
 # 1.1.0
 - Add filters
 - Few possible UB fixes and adjustments
