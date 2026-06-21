@@ -132,12 +132,19 @@ bool ObjectViewerPopup::init(float width, float height, std::string const& text,
         }
     );
     menu->addChild(btn);
-    menu->setPosition(ccp(m_mainLayer->getContentSize().width - 20, 20));
+    menu->setPosition(ccp(95, 10));
+    menu->setAnchorPoint(ccp(0,0));
     if(hasString)
     {
-    menu->setAnchorPoint(ccp(.17f, 0)); // im so good at frontend trust
-    menu->alignItemsHorizontallyWithPadding(30);
-    } else menu->setAnchorPoint(ccp(0,0));
+        auto layout = RowLayout::create();
+        layout->setGap(30.0f);
+        layout->setAxisAlignment(AxisAlignment::Center);
+        layout->setCrossAxisLineAlignment(AxisAlignment::Between);
+    
+        menu->setLayout(layout);
+    } else menu->setLayout(nullptr);
+
+    menu->updateLayout();
 
     spr = CCSprite::createWithSpriteFrameName("GJ_infoIcon_001.png");
     spr->setScale(.75f);
