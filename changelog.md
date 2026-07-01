@@ -1,3 +1,5 @@
+# 1.2.2
+- Fix fatal crash when entering settings on a transformation (i don't know how i didn't find this out yet)
 # 1.2.1
 - i found a dumb ui bug so i fixed it
 # 1.2.0

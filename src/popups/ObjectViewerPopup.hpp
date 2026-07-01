@@ -19,4 +19,5 @@ public:
     }
 
     bool init(float, float, std::string const&, UndoObjectPopup*, UndoObject*, std::string);
+    void focus(CCArray*);
 };

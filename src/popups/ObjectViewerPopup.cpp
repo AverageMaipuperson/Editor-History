@@ -4,13 +4,32 @@ bool ObjectViewerPopup::init(float width, float height, std::string const& text,
 {   
     if (!geode::Popup::init(width, height, "GJ_square01.png")) return false;
 
+    auto arr = CCArray::create();
+
+    if(undo->m_objectCopy) arr->addObject(undo->m_objectCopy->m_object);
+    else {
+        for (int i = 0; i < undo->m_objects->count(); i++)
+        {
+            if(auto obj = dynamic_cast<GameObjectCopy*>(undo->m_objects->objectAtIndex(i)))
+            {
+                arr->addObject(obj->m_object);
+                continue;
+            }
+            arr->addObject(static_cast<GameObject*>(undo->m_objects->objectAtIndex(i)));
+        }
+    }
+
+    auto objects = CCArrayExt<GameObject*>(arr);
+
     m_parent = parent;
     m_undo = undo;
 
     std::string string;
 
-    for (auto obj : CCArrayExt<GameObject*>(m_undo->m_objects))
+    for (auto obj : objects)
     {
+        // log::info("{}", std::string(obj->getSaveString(m_parent->m_ui->m_editorLayer)));
+
         string += std::string(obj->getSaveString(m_parent->m_ui->m_editorLayer)) + ";";
     }
 
@@ -21,13 +40,13 @@ bool ObjectViewerPopup::init(float width, float height, std::string const& text,
     bg->setOpacity(127);
     bg->setPosition(ccp(120, 120));
 
-    if(!string.empty() && undo->m_objects->count() < 1001)
+    if(!string.empty() && objects.size() < 1001)
     {
         auto spr = m_parent->m_ui->spriteFromObjectString(string, false, false, 0, nullptr, nullptr, nullptr);
         auto bgSize = bg->getContentSize();
         auto sprSize = spr->getScaledContentSize(); 
     
-        if(undo->m_objects->count() == 1) spr->setScale(1.f);
+        if(objects.size() == 1) spr->setScale(1.f);
         else if (sprSize.width > 0.f && sprSize.height > 0.f)
         {
             auto x = bgSize.width / sprSize.width;
@@ -53,7 +72,7 @@ bool ObjectViewerPopup::init(float width, float height, std::string const& text,
         Command: {}
         Objects: {}
         ID: {}
-        )", command, undo->m_objects->count(), m_parent->m_lel->m_undoObjects->indexOfObject(undo));
+        )", command, objects.size(), m_parent->m_lel->m_undoObjects->indexOfObject(undo));
     else
     str = fmt::format(R"(
         Command: {}
